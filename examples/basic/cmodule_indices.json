@@ -1,0 +1,13 @@
+{
+  "date": "2018-06-20T19:39:51.7795737Z",
+  "searchPaths": [
+    "C:/Users/jlubawy/go/src/github.com/jlubawy/go-ctlog/examples/basic"
+  ],
+  "modules": [
+    {
+      "index": 0,
+      "name": "main",
+      "path": "C:/Users/jlubawy/go/src/github.com/jlubawy/go-ctlog/examples/basic/main_ctlog.c"
+    }
+  ]
+}
