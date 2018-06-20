@@ -29,7 +29,7 @@ static bool ctlog_enable = false;
 /*============================================================================*/
 // Sequence number to keep track of which log event this was, so we can know if
 // one was dropped or is missing.
-uint16_t ctlog_sequenceNumber = 0;
+static uint16_t ctlog_sequenceNumber = 0;
 
 
 
@@ -37,7 +37,7 @@ uint16_t ctlog_sequenceNumber = 0;
  *                                  Functions
  *============================================================================*/
 /*============================================================================*/
-void
+static void
 ctlog_fputc_json( char c, FILE* stream )
 {
     if ( iscntrl(c) || (c == '"') || (c == '\\') )
@@ -121,10 +121,10 @@ ctlog_fprintf( FILE* stream, char level, cmodule_index_t moduleIndex, uint32_t l
 
                 switch ( type )
                 {
-                    case _CTLOG_TYPE_UINT: fprintf( stream, "%"PRIu32, (uint32_t)va_arg( vl, int ) ); break;
-                    case _CTLOG_TYPE_INT:  fprintf( stream, "%"PRId32, (int32_t)va_arg( vl, int ) ); break;
+                    case CTLOG_TYPE_N_UINT: fprintf( stream, "%"PRIu32, (uint32_t)va_arg( vl, int ) ); break;
+                    case CTLOG_TYPE_N_INT:  fprintf( stream, "%"PRId32, (int32_t)va_arg( vl, int ) ); break;
 
-                    case _CTLOG_TYPE_STRING:
+                    case CTLOG_TYPE_N_STRING:
                     {
                         fputc( '^', stream );
                         fputc( '\x00', stream );
@@ -134,8 +134,8 @@ ctlog_fprintf( FILE* stream, char level, cmodule_index_t moduleIndex, uint32_t l
                     }
                     break;
 
-                    case _CTLOG_TYPE_BOOL: fprintf( stream, "%"PRIu8, (uint8_t)va_arg( vl, int ) ); break;
-                    case _CTLOG_TYPE_CHAR: fprintf( stream, "%"PRIu8, (uint8_t)va_arg( vl, int ) ); break;
+                    case CTLOG_TYPE_N_BOOL: fprintf( stream, "%"PRIu8, (uint8_t)va_arg( vl, int ) ); break;
+                    case CTLOG_TYPE_N_CHAR: fprintf( stream, "%"PRIu8, (uint8_t)va_arg( vl, int ) ); break;
                     default: assert( false ); break;
                 }
 
@@ -173,10 +173,10 @@ ctlog_json_fprintf( FILE* stream, char level, cmodule_index_t moduleIndex, uint3
 
                 switch ( type )
                 {
-                    case _CTLOG_TYPE_UINT: fprintf( stream, "%"PRIu32, (uint32_t)va_arg( vl, int ) ); break;
-                    case _CTLOG_TYPE_INT:  fprintf( stream, "%"PRId32, (int32_t)va_arg( vl, int ) ); break;
+                    case CTLOG_TYPE_N_UINT: fprintf( stream, "%"PRIu32, (uint32_t)va_arg( vl, int ) ); break;
+                    case CTLOG_TYPE_N_INT:  fprintf( stream, "%"PRId32, (int32_t)va_arg( vl, int ) ); break;
 
-                    case _CTLOG_TYPE_STRING:
+                    case CTLOG_TYPE_N_STRING:
                     {
                         char* s = va_arg( vl, char* );
 
@@ -190,7 +190,7 @@ ctlog_json_fprintf( FILE* stream, char level, cmodule_index_t moduleIndex, uint3
                     }
                     break;
 
-                    case _CTLOG_TYPE_BOOL:
+                    case CTLOG_TYPE_N_BOOL:
                     {
                         if ( va_arg( vl, int ) )
                         {
@@ -203,7 +203,7 @@ ctlog_json_fprintf( FILE* stream, char level, cmodule_index_t moduleIndex, uint3
                     }
                     break;
 
-                    case _CTLOG_TYPE_CHAR:
+                    case CTLOG_TYPE_N_CHAR:
                     {
                         fputc( '"', stream );
                         ctlog_fputc_json( (char)va_arg( vl, int ), stream );
