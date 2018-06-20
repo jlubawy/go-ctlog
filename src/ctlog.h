@@ -43,7 +43,7 @@
 #endif
 
 /*============================================================================*/
-// Type definitions used by ctlog_printf to identify what type a variadic
+// Type definitions used by ctlog_fprintf to identify what type a variadic
 // value argument should be cast to.
 #define _CTLOG_TYPE_BOOL    (0x00)
 #define _CTLOG_TYPE_CHAR    (0x01)
@@ -66,7 +66,7 @@
 /*============================================================================*/
 // Helper macros for building the log level macros below. Not intended for use
 // outside of this file.
-#define CTLOG_BASE( _level, _nArgs, ... )  (ctlog_printf( _level, g_cmodule_index, __LINE__, _nArgs, __VA_ARGS__ ))
+#define CTLOG_BASE( _level, _nArgs, ... )  (ctlog_fprintf( stderr, _level, g_cmodule_index, __LINE__, _nArgs, __VA_ARGS__ ))
 #define CTLOG_NO_ARGS( _level )            (CTLOG_BASE( _level, 0, NULL ))
 
 /*============================================================================*/
@@ -125,11 +125,7 @@ ctlog_isEnabled( void );
 
 /*============================================================================*/
 void
-ctlog_printf( char level, cmodule_index_t moduleIndex, uint32_t line, int nArgs, ... );
-
-/*============================================================================*/
-void
-ctlog_flush( void );
+ctlog_fprintf( FILE* stream, char level, cmodule_index_t moduleIndex, uint32_t line, int nArgs, ... );
 
 
 #endif

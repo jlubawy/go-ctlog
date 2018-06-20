@@ -52,12 +52,12 @@ ctlog_isEnabled( void )
 
 /*============================================================================*/
 void
-ctlog_printf( char level, cmodule_index_t moduleIndex, uint32_t line, int nArgs, ... )
+ctlog_fprintf( FILE* stream, char level, cmodule_index_t moduleIndex, uint32_t line, int nArgs, ... )
 {
     if ( ctlog_enable )
     {
-        fputs( "$TL" CTLOG_VERSION ",", stdout );
-        fprintf( stdout, "%"PRIu16",%c,%"PRIu32",%"PRIu32",%d,", ctlog_sequenceNumber, level, moduleIndex, line, nArgs );
+        fputs( "$TL" CTLOG_VERSION ",", stream );
+        fprintf( stream, "%"PRIu16",%c,%"PRIu32",%"PRIu32",%d,", ctlog_sequenceNumber, level, moduleIndex, line, nArgs );
 
         if ( nArgs > 0 )
         {
@@ -68,43 +68,35 @@ ctlog_printf( char level, cmodule_index_t moduleIndex, uint32_t line, int nArgs,
             for ( i = 0; i < (2*nArgs); i += 2 )
             {
                 uint8_t type = (uint8_t)va_arg( vl, int );
-                fprintf( stdout, "%"PRIu8",", type );
+                fprintf( stream, "%"PRIu8",", type );
 
                 switch ( type )
                 {
-                    case _CTLOG_TYPE_UINT: fprintf( stdout, "%"PRIu32, (uint32_t)va_arg( vl, int ) ); break;
-                    case _CTLOG_TYPE_INT:  fprintf( stdout, "%"PRId32, (int32_t)va_arg( vl, int ) ); break;
+                    case _CTLOG_TYPE_UINT: fprintf( stream, "%"PRIu32, (uint32_t)va_arg( vl, int ) ); break;
+                    case _CTLOG_TYPE_INT:  fprintf( stream, "%"PRId32, (int32_t)va_arg( vl, int ) ); break;
 
                     case _CTLOG_TYPE_STRING:
                     {
-                        fputc( '^', stdout );
-                        fputc( '\x00', stdout );
-                        fprintf( stdout, "%s", va_arg( vl, char* ) );
-                        fputc( '$', stdout );
-                        fputc( '\x00', stdout );
+                        fputc( '^', stream );
+                        fputc( '\x00', stream );
+                        fprintf( stream, "%s", va_arg( vl, char* ) );
+                        fputc( '$', stream );
+                        fputc( '\x00', stream );
                     }
                     break;
 
-                    case _CTLOG_TYPE_BOOL: fprintf( stdout, "%"PRIu8, (uint8_t)va_arg( vl, int ) ); break;
-                    case _CTLOG_TYPE_CHAR: fprintf( stdout, "%"PRIu8, (uint8_t)va_arg( vl, int ) ); break;
+                    case _CTLOG_TYPE_BOOL: fprintf( stream, "%"PRIu8, (uint8_t)va_arg( vl, int ) ); break;
+                    case _CTLOG_TYPE_CHAR: fprintf( stream, "%"PRIu8, (uint8_t)va_arg( vl, int ) ); break;
                     default: assert( false ); break;
                 }
 
-                putchar( ',' );
+                fputc( ',', stream );
             }
             va_end( vl );
         }
 
-        fputs( "\n", stdout );
+        fputs( "\n", stream );
     }
 
     ctlog_sequenceNumber += 1;
-}
-
-
-/*============================================================================*/
-void
-ctlog_flush( void )
-{
-    fflush( stdout );
 }
