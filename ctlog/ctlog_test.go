@@ -5,6 +5,7 @@
 package ctlog
 
 import (
+	"encoding/json"
 	"reflect"
 	"strings"
 	"testing"
@@ -396,4 +397,12 @@ func TestTranslator(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestUnmarshalOutput(t *testing.T) {
+	var out Output
+	if err := json.Unmarshal([]byte(`{"ctlog":0,"seq":7,"lvl":"I","mi":0,"ml":20,"args":[{"t":3,"v":"Hello \\ \" \u0001 World"}]}`), &out); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%+v", out)
 }

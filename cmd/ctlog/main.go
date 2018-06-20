@@ -5,6 +5,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -149,7 +150,59 @@ var commands = []Command{
 				}
 			}
 			if err := s.Err(); err != nil {
-				fatalf("Error scanning stding: %v\n", err)
+				fatalf("Error scanning stdin: %v\n", err)
+			}
+		},
+		HelpFn: func() {
+
+		},
+	},
+	{
+		Name: "log_json",
+		CmdFn: func(args []string) {
+			fs := flag.NewFlagSet("log_json", flag.ExitOnError)
+			fs.Parse(args)
+
+			if fs.NArg() == 0 {
+				infof("Must provide a tokenized logging JSON file.\n")
+				fs.Usage()
+				os.Exit(1)
+			}
+
+			if fs.NArg() != 1 {
+				infof("Only accepts one tokenized logging JSON file.\n")
+				fs.Usage()
+				os.Exit(1)
+			}
+
+			f, err := os.Open(fs.Arg(0))
+			if err != nil {
+				fatalf("Error opening modules JSON file: %v\n", err)
+			}
+
+			var tlogInfo TlogInfo
+			if err := json.NewDecoder(f).Decode(&tlogInfo); err != nil {
+				f.Close()
+				fatalf("Error decoding modules JSON: %v\n", err)
+			}
+			f.Close()
+
+			tx := ctlog.NewTranslator(tlogInfo.Modules)
+			s := bufio.NewScanner(os.Stdin)
+			for s.Scan() {
+				var out ctlog.Output
+				if err := json.Unmarshal(s.Bytes(), &out); err != nil {
+					fmt.Println(s.Text())
+				} else {
+					s, err := tx.Translate(&out)
+					if err != nil {
+						fatalf("Error translating tokenized logging output: %v\n", err)
+					}
+					fmt.Println(s)
+				}
+			}
+			if err := s.Err(); err != nil {
+				fatalf("Error scanning stdin: %v\n", err)
 			}
 		},
 		HelpFn: func() {

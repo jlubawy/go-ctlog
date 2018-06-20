@@ -17,7 +17,7 @@ main( void )
     CTLOG_VAR_INFO( "%d", 1, CTLOG_TYPE_INT( -123 ) );              // CTLOG_TYPE_INT
     CTLOG_VAR_INFO( "%d", 1, CTLOG_TYPE_INT( -456 ) );              // CTLOG_TYPE_INT
     CTLOG_VAR_INFO( "%d", 1, CTLOG_TYPE_INT( -678 ) );              // CTLOG_TYPE_INT
-    CTLOG_VAR_INFO( "%s", 1, CTLOG_TYPE_STRING( "Hello World" ) );  // CTLOG_TYPE_STRING
+    CTLOG_VAR_INFO( "%s", 1, CTLOG_TYPE_STRING( "Hello \\ \" \x01 World" ) );  // CTLOG_TYPE_STRING
     CTLOG_VAR_INFO( "%t", 1, CTLOG_TYPE_BOOL( true ) );             // CTLOG_TYPE_BOOL
     CTLOG_VAR_INFO( "%c", 1, CTLOG_TYPE_CHAR( 'J' ) );              // CTLOG_TYPE_CHAR
     return 0;

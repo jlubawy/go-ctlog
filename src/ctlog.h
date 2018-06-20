@@ -15,7 +15,7 @@
  *============================================================================*/
 /*============================================================================*/
 // Version tokenized logging lines in case we need to change the output format.
-#define CTLOG_VERSION  "00"
+#define CTLOG_VERSION  ((uint16_t)0x0000)
 
 /*============================================================================*/
 // Logging levels. These definitions must not change or else it will break
@@ -66,7 +66,7 @@
 /*============================================================================*/
 // Helper macros for building the log level macros below. Not intended for use
 // outside of this file.
-#define CTLOG_BASE( _level, _nArgs, ... )  (ctlog_fprintf( stderr, _level, g_cmodule_index, __LINE__, _nArgs, __VA_ARGS__ ))
+#define CTLOG_BASE( _level, _nArgs, ... )  (ctlog_json_fprintf( stderr, _level, g_cmodule_index, __LINE__, _nArgs, __VA_ARGS__ ))
 #define CTLOG_NO_ARGS( _level )            (CTLOG_BASE( _level, 0, NULL ))
 
 /*============================================================================*/
@@ -126,6 +126,10 @@ ctlog_isEnabled( void );
 /*============================================================================*/
 void
 ctlog_fprintf( FILE* stream, char level, cmodule_index_t moduleIndex, uint32_t line, int nArgs, ... );
+
+/*============================================================================*/
+void
+ctlog_json_fprintf( FILE* stream, char level, cmodule_index_t moduleIndex, uint32_t line, int nArgs, ... );
 
 
 #endif

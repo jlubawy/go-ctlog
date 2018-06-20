@@ -9,6 +9,8 @@ package ctlog
 
 import (
 	"bufio"
+	"encoding"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
@@ -26,6 +28,28 @@ const (
 	LevelInfo  Level = 'I'
 	LevelWarn  Level = 'W'
 )
+
+var _ encoding.TextUnmarshaler = (*Level)(nil)
+
+func (lvl *Level) UnmarshalText(data []byte) (err error) {
+	if len(data) == 1 {
+		switch data[0] {
+		case 'D':
+			*lvl = LevelDebug
+		case 'E':
+			*lvl = LevelError
+		case 'I':
+			*lvl = LevelInfo
+		case 'W':
+			*lvl = LevelWarn
+		default:
+			err = fmt.Errorf("unsupported level '%s'", string(data))
+		}
+	} else {
+		err = fmt.Errorf("unsupported level '%s'", string(data))
+	}
+	return
+}
 
 var MacroFuncNames = []string{
 	"CTLOG_ERROR",
@@ -226,19 +250,19 @@ func ScanLines(data []byte, atEOF bool) (advance int, token []byte, err error) {
 type Output struct {
 	// Sequence is the current log lines sequence number. It is useful for
 	// determining if lines have been dropped.
-	Sequence uint16
+	Sequence uint16 `json:"seq"`
 
 	// Level is this output's logging level used for filtering.
-	Level Level
+	Level Level `json:"lvl"`
 
 	// ModuleIndex is the module index that this output belongs to.
-	ModuleIndex uint32
+	ModuleIndex uint32 `json:"mi"`
 
 	// LineNumber is the line number within the module that this output belongs to.
-	LineNumber uint32
+	LineNumber uint32 `json:"ml"`
 
 	// Args is a slice of typed arguments to go with the format string.
-	Args []Arg
+	Args []Arg `json:"args"`
 }
 
 func (o *Output) Vals() []interface{} {
@@ -250,8 +274,53 @@ func (o *Output) Vals() []interface{} {
 }
 
 type Arg struct {
-	Type
-	Value interface{}
+	Type  Type        `json:"t"`
+	Value interface{} `json:"v"`
+}
+
+func (a *Arg) UnmarshalJSON(data []byte) (err error) {
+	var v struct {
+		Type  Type        `json:"t"`
+		Value interface{} `json:"v"`
+	}
+	err = json.Unmarshal(data, &v)
+	if err != nil {
+		return
+	}
+
+	switch v.Type {
+	case TypeBool:
+		x, ok := v.Value.(bool)
+		if ok {
+			v.Value = x
+		}
+	case TypeChar:
+		x, ok := v.Value.(string)
+		if ok {
+			if len(x) == 0 {
+				err = fmt.Errorf("empty character found")
+				return
+			}
+			v.Value = x[0]
+		}
+	case TypeInt:
+		x, ok := v.Value.(float64)
+		if ok {
+			v.Value = int32(x)
+		}
+	case TypeString:
+		// string doesn't require casting
+	case TypeUint:
+		x, ok := v.Value.(float64)
+		if ok {
+			v.Value = uint32(x)
+		}
+	default:
+		err = fmt.Errorf("unsupported type %d", v.Type)
+	}
+	a.Type = v.Type
+	a.Value = v.Value
+	return
 }
 
 type state int
