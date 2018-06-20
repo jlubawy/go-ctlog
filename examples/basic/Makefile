@@ -3,7 +3,6 @@ SRC_DIR := ./../../src
 CC := gcc
 CFLAGS += -s -g -O3 -Wall -I. -I$(SRC_DIR)
 
-# https://stackoverflow.com/questions/6687630/how-to-remove-unused-c-c-symbols-with-gcc-and-ld
 .PHONY: all
 all:
 	go install github.com/jlubawy/go-ctlog/...
