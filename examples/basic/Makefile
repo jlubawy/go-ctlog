@@ -9,5 +9,5 @@ all:
 	cmodule json . > cmodule_indices.json
 	cmodule header cmodule_indices.json > cmodule_indices.h
 	ctlog json cmodule_indices.json > ctlog_dict.json
-	$(CC) $(CFLAGS) -o main $(SRC_DIR)/ctlog.c main.c
+	$(CC) $(CFLAGS) -o main main.c
 	$(CC) $(CFLAGS) -o main_ctlog $(SRC_DIR)/ctlog.c main_ctlog.c
