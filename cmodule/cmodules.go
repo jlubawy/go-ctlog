@@ -14,7 +14,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/jlubawy/go-ctlog/cmacros"
+	"github.com/jlubawy/go-ctlog/cmacro"
 	"github.com/jlubawy/go-ctlog/ctoken"
 	"github.com/jlubawy/go-ctlog/internal"
 )
@@ -133,9 +133,9 @@ func walkDir(root string) (modules []Module, err error) {
 			case ctoken.TokenTypeText:
 				var (
 					tok = z.Text()
-					mfs []cmacros.MacroFunc
+					mfs []cmacro.MacroFunc
 				)
-				mfs, err = cmacros.FindMacroFuncs(&tok, MacroFuncName)
+				mfs, err = cmacro.FindMacroFuncs(&tok, MacroFuncName)
 				if err != nil {
 					return
 				}

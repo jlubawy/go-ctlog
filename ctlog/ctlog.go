@@ -16,7 +16,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jlubawy/go-ctlog/cmacros"
+	"github.com/jlubawy/go-ctlog/cmacro"
 	"github.com/jlubawy/go-ctlog/ctoken"
 )
 
@@ -112,9 +112,9 @@ func FindLines(r io.Reader) (lines []Line, err error) {
 		case ctoken.TokenTypeText:
 			var (
 				tok = z.Text()
-				mfs []cmacros.MacroFunc
+				mfs []cmacro.MacroFunc
 			)
-			mfs, err = cmacros.FindMacroFuncs(&tok, MacroFuncNames...)
+			mfs, err = cmacro.FindMacroFuncs(&tok, MacroFuncNames...)
 			if err != nil {
 				return
 			}

@@ -3,9 +3,9 @@
 // license that can be found in the LICENSE file.
 
 /*
-Package cmacros finds all function-like macros called within a C source file.
+Package cmacro finds all function-like macros called within a C source file.
 */
-package cmacros
+package cmacro
 
 import (
 	"errors"
