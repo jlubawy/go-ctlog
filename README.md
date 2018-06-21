@@ -63,7 +63,7 @@ CMODULE_DEFINE( main );
 int
 main( void )
 {
-    ctlog_setEnabled( true );
+    ctlog_setStream( stdout );
     CTLOG_INFO( "Long string" );
     CTLOG_VAR_INFO( "%d", 1, CTLOG_TYPE_UINT( 123 ) );
     CTLOG_VAR_INFO( "%d", 1, CTLOG_TYPE_UINT( 456 ) );
@@ -93,7 +93,7 @@ The raw output looks like the following:
 
 This JSON output can then be run through the ```ctlog``` tool like so:
 
-    ./examples/basic/main_ctlog 2>&1 | ctlog log_json examples/basic/ctlog_dict.json
+    ./examples/basic/main_ctlog | ctlog log_json examples/basic/ctlog_dict.json
 
 Which produces identical output as the original program:
 

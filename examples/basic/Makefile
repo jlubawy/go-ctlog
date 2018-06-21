@@ -12,4 +12,4 @@ all:
 	$(CC) $(CFLAGS) -o main main.c
 	./main > main.txt
 	$(CC) $(CFLAGS) -o main_ctlog $(SRC_DIR)/ctlog.c main_ctlog.c
-	./main_ctlog 2>&1 | ctlog log_json ctlog_dict.json > main_ctlog.txt
+	./main_ctlog | ctlog log_json ctlog_dict.json > main_ctlog.txt

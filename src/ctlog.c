@@ -24,12 +24,12 @@
  *============================================================================*/
 /*============================================================================*/
 // Global which controls whether logging is enabled at runtime. Defaults to off.
-static bool ctlog_enable = false;
+static FILE* g_stream = NULL;
 
 /*============================================================================*/
 // Sequence number to keep track of which log event this was, so we can know if
 // one was dropped or is missing.
-static uint16_t ctlog_sequenceNumber = 0;
+static uint16_t g_sequence_number = 0;
 
 
 
@@ -42,41 +42,41 @@ ctlog_fputc_json( char c, FILE* stream )
 {
     if ( iscntrl(c) || (c == '"') || (c == '\\') )
     {
-        fputc( '\\', stream );
+        fputc( '\\', g_stream );
 
         switch (c)
         {
             case '"':
-                fputc( '"', stream );
+                fputc( '"', g_stream );
                 break;
             case '\\':
-                fputc( '\\', stream );
+                fputc( '\\', g_stream );
                 break;
             case '/':
-                fputc( '/', stream );
+                fputc( '/', g_stream );
                 break;
             case '\b':
-                fputc( 'b', stream );
+                fputc( 'b', g_stream );
                 break;
             case '\f':
-                fputc( 'f', stream );
+                fputc( 'f', g_stream );
                 break;
             case '\n':
-                fputc( 'n', stream );
+                fputc( 'n', g_stream );
                 break;
             case '\r':
-                fputc( 'r', stream );
+                fputc( 'r', g_stream );
                 break;
             case '\t':
-                fputc( 't', stream );
+                fputc( 't', g_stream );
                 break;
             default:
-                fprintf( stream, "u%04X", c );
+                fprintf( g_stream, "u%04X", c );
         }
     }
     else
     {
-        fputc( c, stream );
+        fputc( c, g_stream );
     }
 }
 
@@ -87,26 +87,19 @@ ctlog_fputc_json( char c, FILE* stream )
  *============================================================================*/
 /*============================================================================*/
 void
-ctlog_setEnabled( bool enable )
+ctlog_setStream( FILE* stream )
 {
-    ctlog_enable = enable;
-}
-
-/*============================================================================*/
-bool
-ctlog_isEnabled( void )
-{
-    return ctlog_enable;
+    g_stream = stream;
 }
 
 
 /*============================================================================*/
 void
-ctlog_fprintf( FILE* stream, char level, cmodule_index_t moduleIndex, uint32_t line, int nArgs, ... )
+ctlog_fprintf( char level, cmodule_index_t moduleIndex, uint32_t line, int nArgs, ... )
 {
-    if ( ctlog_enable )
+    if ( g_stream != NULL )
     {
-        fprintf( stream, "$TL" "%"PRIu16 "," "%"PRIu16 ",%c," "%"PRIu32 "," "%"PRIu32 ",%d,", CTLOG_VERSION, ctlog_sequenceNumber, level, moduleIndex, line, nArgs );
+        fprintf( g_stream, "$TL" "%"PRIu16 "," "%"PRIu16 ",%c," "%"PRIu32 "," "%"PRIu32 ",%d,", CTLOG_VERSION, g_sequence_number, level, moduleIndex, line, nArgs );
 
         if ( nArgs > 0 )
         {
@@ -117,47 +110,47 @@ ctlog_fprintf( FILE* stream, char level, cmodule_index_t moduleIndex, uint32_t l
             for ( i = 0; i < (2*nArgs); i += 2 )
             {
                 uint8_t type = (uint8_t)va_arg( vl, int );
-                fprintf( stream, "%"PRIu8",", type );
+                fprintf( g_stream, "%"PRIu8",", type );
 
                 switch ( type )
                 {
-                    case CTLOG_TYPE_N_UINT: fprintf( stream, "%"PRIu32, (uint32_t)va_arg( vl, int ) ); break;
-                    case CTLOG_TYPE_N_INT:  fprintf( stream, "%"PRId32, (int32_t)va_arg( vl, int ) ); break;
+                    case CTLOG_TYPE_N_UINT: fprintf( g_stream, "%"PRIu32, (uint32_t)va_arg( vl, int ) ); break;
+                    case CTLOG_TYPE_N_INT:  fprintf( g_stream, "%"PRId32, (int32_t)va_arg( vl, int ) ); break;
 
                     case CTLOG_TYPE_N_STRING:
                     {
-                        fputc( '^', stream );
-                        fputc( '\x00', stream );
-                        fprintf( stream, "%s", va_arg( vl, char* ) );
-                        fputc( '$', stream );
-                        fputc( '\x00', stream );
+                        fputc( '^', g_stream );
+                        fputc( '\x00', g_stream );
+                        fprintf( g_stream, "%s", va_arg( vl, char* ) );
+                        fputc( '$', g_stream );
+                        fputc( '\x00', g_stream );
                     }
                     break;
 
-                    case CTLOG_TYPE_N_BOOL: fprintf( stream, "%"PRIu8, (uint8_t)va_arg( vl, int ) ); break;
-                    case CTLOG_TYPE_N_CHAR: fprintf( stream, "%"PRIu8, (uint8_t)va_arg( vl, int ) ); break;
+                    case CTLOG_TYPE_N_BOOL: fprintf( g_stream, "%"PRIu8, (uint8_t)va_arg( vl, int ) ); break;
+                    case CTLOG_TYPE_N_CHAR: fprintf( g_stream, "%"PRIu8, (uint8_t)va_arg( vl, int ) ); break;
                     default: assert( false ); break;
                 }
 
-                fputc( ',', stream );
+                fputc( ',', g_stream );
             }
             va_end( vl );
         }
 
-        fputs( "\n", stream );
+        fputs( "\n", g_stream );
     }
 
-    ctlog_sequenceNumber += 1;
+    g_sequence_number += 1;
 }
 
 
 /*============================================================================*/
 void
-ctlog_json_fprintf( FILE* stream, char level, cmodule_index_t moduleIndex, uint32_t line, int nArgs, ... )
+ctlog_json_fprintf( char level, cmodule_index_t moduleIndex, uint32_t line, int nArgs, ... )
 {
-    if ( ctlog_enable )
+    if ( g_stream != NULL )
     {
-        fprintf( stream, "{\"ctlog\":" "%"PRIu16 ",\"seq\":" "%"PRIu16 ",\"lvl\":\"%c\",\"mi\":" "%"PRIu32 ",\"ml\":" "%"PRIu32 ",\"args\":[", CTLOG_VERSION, ctlog_sequenceNumber, level, moduleIndex, line );
+        fprintf( g_stream, "{\"ctlog\":" "%"PRIu16 ",\"seq\":" "%"PRIu16 ",\"lvl\":\"%c\",\"mi\":" "%"PRIu32 ",\"ml\":" "%"PRIu32 ",\"args\":[", CTLOG_VERSION, g_sequence_number, level, moduleIndex, line );
 
         if ( nArgs > 0 )
         {
@@ -169,24 +162,24 @@ ctlog_json_fprintf( FILE* stream, char level, cmodule_index_t moduleIndex, uint3
             for ( i = 0; i < n; i += 2 )
             {
                 uint8_t type = (uint8_t)va_arg( vl, int );
-                fprintf( stream, "{\"t\":" "%"PRIu8 ",\"v\":", type );
+                fprintf( g_stream, "{\"t\":" "%"PRIu8 ",\"v\":", type );
 
                 switch ( type )
                 {
-                    case CTLOG_TYPE_N_UINT: fprintf( stream, "%"PRIu32, (uint32_t)va_arg( vl, int ) ); break;
-                    case CTLOG_TYPE_N_INT:  fprintf( stream, "%"PRId32, (int32_t)va_arg( vl, int ) ); break;
+                    case CTLOG_TYPE_N_UINT: fprintf( g_stream, "%"PRIu32, (uint32_t)va_arg( vl, int ) ); break;
+                    case CTLOG_TYPE_N_INT:  fprintf( g_stream, "%"PRId32, (int32_t)va_arg( vl, int ) ); break;
 
                     case CTLOG_TYPE_N_STRING:
                     {
                         char* s = va_arg( vl, char* );
 
-                        fputc( '"', stream );
+                        fputc( '"', g_stream );
                         while ( *s != '\0' )
                         {
-                            ctlog_fputc_json( *s, stream );
+                            ctlog_fputc_json( *s, g_stream );
                             s++;
                         }
-                        fputc( '"', stream );
+                        fputc( '"', g_stream );
                     }
                     break;
 
@@ -194,37 +187,37 @@ ctlog_json_fprintf( FILE* stream, char level, cmodule_index_t moduleIndex, uint3
                     {
                         if ( va_arg( vl, int ) )
                         {
-                            fputs( "true", stream );
+                            fputs( "true", g_stream );
                         }
                         else
                         {
-                            fputs( "false", stream );
+                            fputs( "false", g_stream );
                         }
                     }
                     break;
 
                     case CTLOG_TYPE_N_CHAR:
                     {
-                        fputc( '"', stream );
-                        ctlog_fputc_json( (char)va_arg( vl, int ), stream );
-                        fputc( '"', stream );
+                        fputc( '"', g_stream );
+                        ctlog_fputc_json( (char)va_arg( vl, int ), g_stream );
+                        fputc( '"', g_stream );
                     }
                     break;
 
                     default: assert( false ); break;
                 }
 
-                fputc( '}', stream );
+                fputc( '}', g_stream );
                 if ( i + 2 < n )
                 {
-                    fputc( ',', stream );
+                    fputc( ',', g_stream );
                 }
             }
             va_end( vl );
         }
 
-        fputs( "]}\n", stream );
+        fputs( "]}\n", g_stream );
     }
 
-    ctlog_sequenceNumber += 1;
+    g_sequence_number += 1;
 }

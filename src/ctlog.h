@@ -66,7 +66,7 @@
 /*============================================================================*/
 // Helper macros for building the log level macros below. Not intended for use
 // outside of this file.
-#define CTLOG_BASE( _level, _nArgs, ... )  (ctlog_json_fprintf( stderr, _level, g_cmodule_index, __LINE__, _nArgs, __VA_ARGS__ ))
+#define CTLOG_BASE( _level, _nArgs, ... )  (ctlog_json_fprintf( _level, g_cmodule_index, __LINE__, _nArgs, __VA_ARGS__ ))
 #define CTLOG_NO_ARGS( _level )            (CTLOG_BASE( _level, 0, NULL ))
 
 /*============================================================================*/
@@ -117,19 +117,15 @@
  *============================================================================*/
 /*============================================================================*/
 void
-ctlog_setEnabled( bool enable );
-
-/*============================================================================*/
-bool
-ctlog_isEnabled( void );
+ctlog_setStream( FILE* stream );
 
 /*============================================================================*/
 void
-ctlog_fprintf( FILE* stream, char level, cmodule_index_t moduleIndex, uint32_t line, int nArgs, ... );
+ctlog_fprintf( char level, cmodule_index_t moduleIndex, uint32_t line, int nArgs, ... );
 
 /*============================================================================*/
 void
-ctlog_json_fprintf( FILE* stream, char level, cmodule_index_t moduleIndex, uint32_t line, int nArgs, ... );
+ctlog_json_fprintf( char level, cmodule_index_t moduleIndex, uint32_t line, int nArgs, ... );
 
 
 #endif

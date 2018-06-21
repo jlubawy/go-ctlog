@@ -24,11 +24,13 @@ func TestFindLines(t *testing.T) {
 
 CMODULE_DEFINE( main );
 
+static const char* long_str = "Really long string";
+
 int
 main( void )
 {
     ctlog_setEnabled( true );
-    CTLOG_INFO( "Test" );
+    CTLOG_VAR_INFO( "%s", 1, CTLOG_TYPE_STRING( long_str ) );
     CTLOG_VAR_INFO( "%d", 1, CTLOG_TYPE_UINT( 123 ) );              // CTLOG_TYPE_UINT
     CTLOG_VAR_INFO( "%d", 1, CTLOG_TYPE_UINT( 456 ) );              // CTLOG_TYPE_UINT
     CTLOG_VAR_INFO( "%d", 1, CTLOG_TYPE_UINT( 789 ) );              // CTLOG_TYPE_UINT
@@ -43,16 +45,8 @@ main( void )
 `,
 			Lines: []Line{
 				{
-					Number:       12,
-					FormatString: "Test",
-				},
-				{
-					Number:       13,
-					FormatString: "%d",
-				},
-				{
 					Number:       14,
-					FormatString: "%d",
+					FormatString: "%s",
 				},
 				{
 					Number:       15,
@@ -72,14 +66,22 @@ main( void )
 				},
 				{
 					Number:       19,
-					FormatString: "%s",
+					FormatString: "%d",
 				},
 				{
 					Number:       20,
-					FormatString: "%t",
+					FormatString: "%d",
 				},
 				{
 					Number:       21,
+					FormatString: "%s",
+				},
+				{
+					Number:       22,
+					FormatString: "%t",
+				},
+				{
+					Number:       23,
 					FormatString: "%c",
 				},
 			},
