@@ -1,6 +1,5 @@
 # jlubawy/go-ctlog
 
-[![GoDoc](https://godoc.org/github.com/jlubawy/go-ctlog?status.svg)](https://godoc.org/github.com/jlubawy/go-ctlog)
 [![Build Status](https://travis-ci.org/jlubawy/go-ctlog.svg?branch=master)](https://travis-ci.org/jlubawy/go-ctlog)
 
 This project is a C library and a collection of build tools that can be used to
