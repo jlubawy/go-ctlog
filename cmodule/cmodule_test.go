@@ -7,8 +7,6 @@ package cmodule
 import (
 	"reflect"
 	"testing"
-
-	"github.com/jlubawy/go-ctlog/internal"
 )
 
 func TestWalkDirs(t *testing.T) {
@@ -28,7 +26,7 @@ func TestWalkDirs(t *testing.T) {
 	}
 	for i := 0; i < len(exp); i++ {
 		exp[i].Index = i
-		cp, err := internal.PathAbsToSlash(exp[i].Path)
+		cp, err := PathAbsToSlash(exp[i].Path)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -70,7 +68,7 @@ func TestWalkDir(t *testing.T) {
 	}
 	for i := 0; i < len(exp); i++ {
 		exp[i].Index = i
-		cp, err := internal.PathAbsToSlash(exp[i].Path)
+		cp, err := PathAbsToSlash(exp[i].Path)
 		if err != nil {
 			t.Fatal(err)
 		}

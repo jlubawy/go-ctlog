@@ -16,8 +16,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jlubawy/go-ctlog/cmacro"
-	"github.com/jlubawy/go-ctlog/ctoken"
+	"github.com/jlubawy/go-ctext"
+	"github.com/jlubawy/go-ctext/cmacro"
 )
 
 type Level byte
@@ -87,7 +87,7 @@ type Module struct {
 
 type Line struct {
 	// Number is the line number of the tokenized logging output.
-	Number uint32 `json:"number"`
+	Number int `json:"number"`
 
 	// FormatString is the format string that should be used for formatting the
 	// tokenized logging variable output.
@@ -98,20 +98,20 @@ type Line struct {
 func FindLines(r io.Reader) (lines []Line, err error) {
 	lines = make([]Line, 0)
 
-	z := ctoken.NewTokenizer(r)
+	z := ctext.NewScanner(r)
 	for {
 		tt := z.Next()
 		switch tt {
-		case ctoken.TokenTypeError:
+		case ctext.ErrorToken:
 			err = z.Err()
 			if err == io.EOF {
 				err = nil
 			}
 			return
 
-		case ctoken.TokenTypeText:
+		case ctext.TextToken:
 			var (
-				tok = z.Text()
+				tok = z.Token()
 				mfs []cmacro.MacroFunc
 			)
 			mfs, err = cmacro.FindMacroFuncs(&tok, MacroFuncNames...)
@@ -607,7 +607,7 @@ func (t *Translator) Translate(output *Output) (s string, err error) {
 
 	// Find the line within the module
 	for _, line := range module.Lines {
-		if line.Number == output.LineNumber {
+		if line.Number == int(output.LineNumber) {
 			s = fmt.Sprintf(line.FormatString, output.Vals()...)
 			return
 		}

@@ -14,9 +14,8 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/jlubawy/go-ctlog/cmacro"
-	"github.com/jlubawy/go-ctlog/ctoken"
-	"github.com/jlubawy/go-ctlog/internal"
+	"github.com/jlubawy/go-ctext"
+	"github.com/jlubawy/go-ctext/cmacro"
 )
 
 const MacroFuncName = "CMODULE_DEFINE"
@@ -103,7 +102,7 @@ func walkDir(root string) (modules []Module, err error) {
 		}
 
 		// Convert path to absolute path
-		path, err = internal.PathAbsToSlash(path)
+		path, err = PathAbsToSlash(path)
 		if err != nil {
 			return
 		}
@@ -116,13 +115,13 @@ func walkDir(root string) (modules []Module, err error) {
 		defer f.Close()
 
 		var (
-			z    = ctoken.NewTokenizer(f)
+			z    = ctext.NewScanner(f)
 			done bool
 		)
 		for !done {
 			tt := z.Next()
 			switch tt {
-			case ctoken.TokenTypeError:
+			case ctext.ErrorToken:
 				err = z.Err()
 				if err != io.EOF {
 					return
@@ -130,9 +129,9 @@ func walkDir(root string) (modules []Module, err error) {
 				err = nil
 				done = true
 
-			case ctoken.TokenTypeText:
+			case ctext.TextToken:
 				var (
-					tok = z.Text()
+					tok = z.Token()
 					mfs []cmacro.MacroFunc
 				)
 				mfs, err = cmacro.FindMacroFuncs(&tok, MacroFuncName)
@@ -169,5 +168,15 @@ func walkDir(root string) (modules []Module, err error) {
 		return
 	}
 
+	return
+}
+
+// PathAbsToSlash returns an absolute path with / slash characters.
+func PathAbsToSlash(p string) (cp string, err error) {
+	cp, err = filepath.Abs(p)
+	if err != nil {
+		return
+	}
+	cp = filepath.ToSlash(cp)
 	return
 }

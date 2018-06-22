@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/jlubawy/go-ctlog/cmodule"
-	"github.com/jlubawy/go-ctlog/internal"
 )
 
 type ModulesInfo struct {
@@ -85,7 +84,7 @@ var commands = []Command{
 
 			sps := make([]string, fs.NArg())
 			for i := 0; i < len(sps); i++ {
-				cp, err := internal.PathAbsToSlash(fs.Arg(i))
+				cp, err := cmodule.PathAbsToSlash(fs.Arg(i))
 				if err != nil {
 					fatalf("Error cleaning search path: %v\n", err)
 				}
