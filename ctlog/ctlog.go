@@ -98,12 +98,12 @@ type Line struct {
 func FindLines(r io.Reader) (lines []Line, err error) {
 	lines = make([]Line, 0)
 
-	z := ctext.NewScanner(r)
+	s := ctext.NewScanner(r)
 	for {
-		tt := z.Next()
+		tt := s.Next()
 		switch tt {
 		case ctext.ErrorToken:
-			err = z.Err()
+			err = s.Err()
 			if err == io.EOF {
 				err = nil
 			}
@@ -111,7 +111,7 @@ func FindLines(r io.Reader) (lines []Line, err error) {
 
 		case ctext.TextToken:
 			var (
-				tok = z.Token()
+				tok = s.Token()
 				mfs []cmacro.MacroFunc
 			)
 			mfs, err = cmacro.FindMacroFuncs(&tok, MacroFuncNames...)

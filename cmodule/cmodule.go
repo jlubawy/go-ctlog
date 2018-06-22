@@ -115,14 +115,14 @@ func walkDir(root string) (modules []Module, err error) {
 		defer f.Close()
 
 		var (
-			z    = ctext.NewScanner(f)
+			s    = ctext.NewScanner(f)
 			done bool
 		)
 		for !done {
-			tt := z.Next()
+			tt := s.Next()
 			switch tt {
 			case ctext.ErrorToken:
-				err = z.Err()
+				err = s.Err()
 				if err != io.EOF {
 					return
 				}
@@ -131,7 +131,7 @@ func walkDir(root string) (modules []Module, err error) {
 
 			case ctext.TextToken:
 				var (
-					tok = z.Token()
+					tok = s.Token()
 					mfs []cmacro.MacroFunc
 				)
 				mfs, err = cmacro.FindMacroFuncs(&tok, MacroFuncName)
