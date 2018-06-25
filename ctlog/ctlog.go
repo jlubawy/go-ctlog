@@ -110,11 +110,8 @@ func FindLines(r io.Reader) (lines []Line, err error) {
 			return
 
 		case ctext.TextToken:
-			var (
-				tok = s.Token()
-				mfs []cmacro.MacroFunc
-			)
-			mfs, err = cmacro.FindMacroFuncs(&tok, MacroFuncNames...)
+			var mfs []cmacro.MacroFunc
+			mfs, err = cmacro.FindMacroFuncs(s.TokenText(), s.Position, MacroFuncNames...)
 			if err != nil {
 				return
 			}

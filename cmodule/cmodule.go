@@ -130,11 +130,8 @@ func walkDir(root string) (modules []Module, err error) {
 				done = true
 
 			case ctext.TextToken:
-				var (
-					tok = s.Token()
-					mfs []cmacro.MacroFunc
-				)
-				mfs, err = cmacro.FindMacroFuncs(&tok, MacroFuncName)
+				var mfs []cmacro.MacroFunc
+				mfs, err = cmacro.FindMacroFuncs(s.TokenText(), s.Position, MacroFuncName)
 				if err != nil {
 					return
 				}
