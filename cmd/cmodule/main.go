@@ -14,4 +14,4 @@ var program = cli.Program{
 	},
 }
 
-func main() { program.Run() }
+func main() { program.RunAndExit() }

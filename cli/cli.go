@@ -16,7 +16,13 @@ type Program struct {
 	Commands []Command // program commands
 }
 
-func (prog *Program) Run() {
+func (prog *Program) RunAndExit() {
+	os.Exit(prog.Run())
+}
+
+func (prog *Program) Run() (code int) {
+	code = 1 // error code will only be 0 if the command successfully ran
+
 	var templData = struct {
 		Program *Program
 		Command *Command
@@ -25,18 +31,13 @@ func (prog *Program) Run() {
 		Program: prog,
 	}
 
-	usageFunc := func() {
+	fs := flag.NewFlagSet(prog.Name, flag.ContinueOnError)
+	fs.Usage = func() {}
+	err := fs.Parse(os.Args[1:])
+	if (err == flag.ErrHelp) || (fs.NArg() == 0) || (fs.NArg() == 1 && fs.Arg(0) == "help") {
+		// If '-help' or '-h', no command, or 'help' command print the program usage and exit
 		Templ(programUsageTempl, &templData)
-		os.Exit(1)
-	}
-
-	fs := flag.NewFlagSet(prog.Name, flag.ExitOnError)
-	fs.Usage = usageFunc
-	fs.Parse(os.Args[1:])
-
-	if (fs.NArg() == 0) || (fs.NArg() == 1 && fs.Arg(0) == "help") {
-		// If no command or 'help' command print the program usage and exit
-		usageFunc()
+		return
 	}
 
 	for i := 0; i < len(prog.Commands); i++ {
@@ -58,18 +59,21 @@ func (prog *Program) Run() {
 					templData.Flags = append(templData.Flags, f)
 				})
 				Templ(commandHelpTempl, &templData)
-				os.Exit(1)
+				return
 
 			} else if fs.Arg(0) == cmd.Name {
 				cmd.Run(cfs.Args())
-				os.Exit(0)
+				code = 0 // if we reached here the command has successfully run
+				return
 			}
 		}
 	}
 
-	Fatalf(`%s: unknown command "%s"
+	Infof(`%s: unknown command "%s"
 Run '%s help' for usage.
 `, prog.Name, fs.Arg(1), prog.Name)
+
+	return
 }
 
 type Command struct {
