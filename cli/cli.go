@@ -2,14 +2,22 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+/*
+Package cli provides a simple way of creating new command-line interface (CLI)
+programs. It is built using nothing but standard packages and is based on the
+behavior of the 'go' command-line tool (with some minor changes).
+*/
 package cli
 
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"text/template"
 )
+
+var Writer io.Writer = os.Stderr
 
 type Program struct {
 	Name     string    // program name
@@ -17,10 +25,10 @@ type Program struct {
 }
 
 func (prog *Program) RunAndExit() {
-	os.Exit(prog.Run())
+	os.Exit(prog.Run(os.Args))
 }
 
-func (prog *Program) Run() (code int) {
+func (prog *Program) Run(args []string) (code int) {
 	code = 1 // error code will only be 0 if the command successfully ran
 
 	var templData = struct {
@@ -33,7 +41,7 @@ func (prog *Program) Run() (code int) {
 
 	fs := flag.NewFlagSet(prog.Name, flag.ContinueOnError)
 	fs.Usage = func() {}
-	err := fs.Parse(os.Args[1:])
+	err := fs.Parse(args[1:])
 	if (err == flag.ErrHelp) || (fs.NArg() == 0) || (fs.NArg() == 1 && fs.Arg(0) == "help") {
 		// If '-help' or '-h', no command, or 'help' command print the program usage and exit
 		Templ(programUsageTempl, &templData)
@@ -89,11 +97,11 @@ type Command struct {
 }
 
 func Info(s string) {
-	fmt.Fprint(os.Stderr, s)
+	fmt.Fprint(Writer, s)
 }
 
 func Infof(format string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, format, args...)
+	fmt.Fprintf(Writer, format, args...)
 }
 
 func Fatal(s string) {
@@ -107,7 +115,7 @@ func Fatalf(format string, args ...interface{}) {
 }
 
 func Templ(t *template.Template, data interface{}) {
-	if err := t.Execute(os.Stderr, data); err != nil {
+	if err := t.Execute(Writer, data); err != nil {
 		panic(err)
 	}
 }
@@ -122,11 +130,11 @@ Available commands:
 Use "{{$.Program.Name}} help [command]" for more Information about that command.
 `))
 
-var commandUsageTempl = template.Must(template.New("").Parse(`usage: {{$.Program.Name}} {{$.Command.Name}} {{$.Command.ShortUsage}}
+var commandUsageTempl = template.Must(template.New("").Parse(`Usage: {{$.Program.Name}} {{$.Command.Name}} {{$.Command.ShortUsage}}
 Run '{{$.Program.Name}} help {{$.Command.Name}}' for details.
 `))
 
-var commandHelpTempl = template.Must(template.New("").Parse(`usage: {{$.Program.Name}} {{$.Command.Name}} {{$.Command.ShortUsage}}
+var commandHelpTempl = template.Must(template.New("").Parse(`Usage: {{$.Program.Name}} {{$.Command.Name}} {{$.Command.ShortUsage}}
 
 {{$.Command.Description}}
 
