@@ -4,7 +4,7 @@
 
 package main
 
-import "github.com/jlubawy/go-ctlog/cli"
+import "github.com/jlubawy/go-cli"
 
 var program = cli.Program{
 	Name: "cmodule",

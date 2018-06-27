@@ -11,7 +11,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/jlubawy/go-ctlog/cli"
+	"github.com/jlubawy/go-cli"
 	"github.com/jlubawy/go-ctlog/cmodule"
 )
 
