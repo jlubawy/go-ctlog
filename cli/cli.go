@@ -17,19 +17,41 @@ import (
 	"text/template"
 )
 
-var Writer io.Writer = os.Stderr
-
+// A Program is named command-line program with a collection of supported
+// sub-commands.
 type Program struct {
-	Name     string    // program name
-	Commands []Command // program commands
+	Name     string    // name of the programs
+	Commands []Command // supported commands
 }
 
+// A Command is a sub-command supported by a given program.
+type Command struct {
+	Name             string // name of the command
+	ShortDescription string // short description of the command
+	Description      string // long description of the command
+	ShortUsage       string // short usage description
+
+	// SetupFlags is called before flag.Parse allowing the command to setup
+	// any options it needs.
+	SetupFlags func(fs *flag.FlagSet)
+
+	// Run is the entry point to the command, it is passed the arguments after
+	// the command name.
+	Run func(args []string)
+}
+
+// RunAndExit is the same as Run but it calls os.Exit with the error code
+// returned by Run.
 func (prog *Program) RunAndExit() {
 	os.Exit(prog.Run(os.Args))
 }
 
+// Run runs the program or prints help messages if requested, returning 0 if
+// successful, DefaultErrorCode if unsuccessful, or it may not return at all
+// if the command exited the program. Typically RunAndExit should be used
+// instead.
 func (prog *Program) Run(args []string) (code int) {
-	code = 1 // error code will only be 0 if the command successfully ran
+	code = DefaultErrorCode
 
 	var templData = struct {
 		Program *Program
@@ -84,36 +106,38 @@ Run '%s help' for usage.
 	return
 }
 
-type Command struct {
-	Name string // name of the command
+// Writer is the io.Writer that the Info, Infof, Fatal, and Fatalf functions
+// write to. It defaults to os.Stderr.
+var Writer io.Writer = os.Stderr
 
-	ShortDescription string // short description of the command
-	Description      string // long description of the command
+// DefaultErrorCode is the default exit code used by all calls to os.Exit in
+// this package.
+var DefaultErrorCode = 1
 
-	ShortUsage string
-
-	SetupFlags func(fs *flag.FlagSet)
-	Run        func(args []string)
-}
-
+// Info logs a message to Writer using fmt.Fprint.
 func Info(s string) {
 	fmt.Fprint(Writer, s)
 }
 
+// Infof logs a message to Writer using fmt.Fprintf.
 func Infof(format string, args ...interface{}) {
 	fmt.Fprintf(Writer, format, args...)
 }
 
+// Fatal is similar to Info but it calls os.Exit(DefaultErrorCode) after.
 func Fatal(s string) {
 	Info(s)
-	os.Exit(1)
+	os.Exit(DefaultErrorCode)
 }
 
+// Fatalf is similar to Infof but it calls os.Exit(DefaultErrorCode) after.
 func Fatalf(format string, args ...interface{}) {
 	Infof(format, args...)
-	os.Exit(1)
+	os.Exit(DefaultErrorCode)
 }
 
+// Templ executes the provided template writing to Writer, calling panic if
+// there was any error.
 func Templ(t *template.Template, data interface{}) {
 	if err := t.Execute(Writer, data); err != nil {
 		panic(err)
