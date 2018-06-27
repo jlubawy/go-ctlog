@@ -80,7 +80,7 @@ The raw output looks like the following:
 
 This JSON output can then be run through the ```ctlog``` tool like so:
 
-    ./examples/basic/main_ctlog | ctlog log_json examples/basic/ctlog_dict.json
+    ./examples/basic/main_ctlog | ctlog log examples/basic/ctlog_dict.json
 
 Which produces identical output as the original program:
 

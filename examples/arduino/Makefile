@@ -71,7 +71,7 @@ all:
 	go install github.com/jlubawy/go-ctlog/...
 	$(MAKE) dirs
 	$(MAKE) generate_cmodule
-	$(MAKE) generate_ctlog
+	$(MAKE) generate_ctlog_dict
 	$(MAKE) $(OUT_HEX)
 
 .PHONY: install
@@ -83,9 +83,9 @@ generate_cmodule:
 	cmodule json ./src > $(DIR_SRC_GEN)/cmodule_indices.json
 	cmodule header $(DIR_SRC_GEN)/cmodule_indices.json > $(DIR_SRC_GEN)/cmodule_indices.h
 
-.PHONY: generate_ctlog
-generate_ctlog:
-	ctlog json $(DIR_SRC_GEN)/cmodule_indices.json > $(DIR_BIN)/ctlog_dict.json
+.PHONY: generate_ctlog_dict
+generate_ctlog_dict:
+	ctlog dict $(DIR_SRC_GEN)/cmodule_indices.json > $(DIR_BIN)/ctlog_dict.json
 
 .PHONY: clean
 clean:
