@@ -130,5 +130,4 @@ Options:
 {{range $.Flags}}
     -{{printf "%-10s %s (default=%s)" .Name .Usage .DefValue}}
 {{- end}}
-
 `))

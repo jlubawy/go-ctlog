@@ -28,7 +28,7 @@ var logCommand = cli.Command{
 	Description:      "Log translates tokenized logging output using the provided dictionary.",
 	ShortUsage:       "[-output output] [dictionary JSON]",
 	SetupFlags: func(fs *flag.FlagSet) {
-		fs.StringVar(&logOptions.Output, "output", "", "file to output the translated logging to, or stdout if empty")
+		fs.StringVar(&logOptions.Output, "output", "", "output file or stdout if empty")
 	},
 	Run: func(args []string) {
 		if len(args) == 0 {

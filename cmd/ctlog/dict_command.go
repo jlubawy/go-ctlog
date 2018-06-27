@@ -29,8 +29,8 @@ var dictCommand = cli.Command{
 	Description:      "Dict creates a tokenized logging dictionary from the provided cmodule JSON file.",
 	ShortUsage:       "[-output output] [cmodule JSON]",
 	SetupFlags: func(fs *flag.FlagSet) {
-		fs.BoolVar(&dictOptions.Compact, "compact", false, "output compact JSON dictionary")
-		fs.StringVar(&dictOptions.Output, "output", "", "file to output the stripped source to, or stdout if empty")
+		fs.BoolVar(&dictOptions.Compact, "compact", false, "output compact JSON")
+		fs.StringVar(&dictOptions.Output, "output", "", "output file or stdout if empty")
 	},
 	Run: func(args []string) {
 		if len(args) == 0 {
@@ -93,7 +93,6 @@ var dictCommand = cli.Command{
 		}
 
 		enc := json.NewEncoder(w)
-
 		if !dictOptions.Compact {
 			enc.SetIndent("", "  ")
 		}
