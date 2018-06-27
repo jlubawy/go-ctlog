@@ -12,63 +12,52 @@ import (
 	"io"
 	"os"
 
+	"github.com/jlubawy/go-ctlog/cli"
 	"github.com/jlubawy/go-ctlog/ctlog"
 )
 
-const logUsage = `usage: log [-output output] [dictionary JSON]
-Run 'ctlog help log' for details.
-`
+type LogOptions struct {
+	Output string
+}
 
-const logHelp = `usage: ctlog log [-output output] [dictionary JSON]
+var logOptions LogOptions
 
-Log translates tokenized logging output using the provided dictionary.
-
-Options:
-
-    -output        file to output the translated logging to, or stdout if empty
-`
-
-var logCommand = Command{
-	Name: "log",
-	CmdFn: func(args []string) {
-		var flagOutput string
-
-		fs := flag.NewFlagSet("log", flag.ExitOnError)
-		fs.Usage = func() { info(logUsage) }
-		fs.StringVar(&flagOutput, "output", "", "file to output to, stdout if empty")
-		fs.Parse(args)
-
-		if fs.NArg() == 0 {
-			info("Must provide a dictionary JSON file.\n\n")
-			fs.Usage()
-			os.Exit(1)
+var logCommand = cli.Command{
+	Name:             "log",
+	ShortDescription: "translate tokenized logging output using the provided dictionary",
+	Description:      "Log translates tokenized logging output using the provided dictionary.",
+	ShortUsage:       "[-output output] [dictionary JSON]",
+	SetupFlags: func(fs *flag.FlagSet) {
+		fs.StringVar(&logOptions.Output, "output", "", "file to output the translated logging to, or stdout if empty")
+	},
+	Run: func(args []string) {
+		if len(args) == 0 {
+			cli.Fatal("Must provide a dictionary JSON file.\n")
 		}
 
-		if fs.NArg() != 1 {
-			info("Only accepts one dictionary JSON file.\n\n")
-			fs.Usage()
-			os.Exit(1)
+		if len(args) != 1 {
+			cli.Fatal("Only accepts one dictionary JSON file.\n")
 		}
 
-		f, err := os.Open(fs.Arg(0))
+		f, err := os.Open(args[0])
 		if err != nil {
-			fatalf("Error opening dictionary JSON file: %v\n", err)
+			cli.Fatalf("Error opening dictionary JSON file: %v\n", err)
 		}
 
 		var tlogInfo TlogInfo
 		if err := json.NewDecoder(f).Decode(&tlogInfo); err != nil {
 			f.Close()
-			fatalf("Error decoding dictionary JSON: %v\n", err)
+			cli.Fatalf("Error decoding dictionary JSON: %v\n", err)
 		}
 		f.Close()
 
 		var w io.Writer
-		if flagOutput == "" {
+		if logOptions.Output == "" {
 			w = os.Stdout
 		} else {
-			f, err := os.OpenFile(flagOutput, os.O_CREATE|os.O_WRONLY, 0664)
+			f, err := os.OpenFile(logOptions.Output, os.O_CREATE|os.O_WRONLY, 0664)
 			if err != nil {
-				fatalf("Error opening output file: %v\n", err)
+				cli.Fatalf("Error opening output file: %v\n", err)
 			}
 			defer f.Close()
 			w = f
@@ -83,14 +72,13 @@ var logCommand = Command{
 			} else {
 				s, err := tx.Translate(&out)
 				if err != nil {
-					fatalf("Error translating tokenized logging output: %v\n", err)
+					cli.Fatalf("Error translating tokenized logging output: %v\n", err)
 				}
 				fmt.Fprintln(w, s)
 			}
 		}
 		if err := s.Err(); err != nil {
-			fatalf("Error scanning stdin: %v\n", err)
+			cli.Fatalf("Error scanning stdin: %v\n", err)
 		}
 	},
-	HelpFn: func() { info(logHelp) },
 }

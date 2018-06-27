@@ -11,59 +11,45 @@ import (
 	"os"
 	"time"
 
+	"github.com/jlubawy/go-ctlog/cli"
 	"github.com/jlubawy/go-ctlog/cmodule"
 	"github.com/jlubawy/go-ctlog/ctlog"
 )
 
-const dictUsage = `usage: dict [-output output] [cmodule JSON]
-Run 'ctlog help dict' for details.
-`
+type DictOptions struct {
+	Compact bool
+	Output  string
+}
 
-const dictHelp = `usage: ctlog dict [-output output] [cmodule JSON]
+var dictOptions DictOptions
 
-Dict creates a tokenized logging dictionary from the provided cmodule JSON file.
-
-Options:
-
-    -compact       output compact JSON dictionary
-    -output        file to output the stripped source to, or stdout if empty
-`
-
-var dictCommand = Command{
-	Name: "dict",
-	CmdFn: func(args []string) {
-		var (
-			flagCompact bool
-			flagOutput  string
-		)
-
-		fs := flag.NewFlagSet("dict", flag.ExitOnError)
-		fs.Usage = func() { info(dictUsage) }
-		fs.BoolVar(&flagCompact, "compact", false, "output compact JSON")
-		fs.StringVar(&flagOutput, "output", "", "file to output to, stdout if empty")
-		fs.Parse(args)
-
-		if fs.NArg() == 0 {
-			info("Must provide a cmodule JSON file.\n\n")
-			fs.Usage()
-			os.Exit(1)
+var dictCommand = cli.Command{
+	Name:             "dict",
+	ShortDescription: "create tokenized logging dictionary from a cmodule JSON file",
+	Description:      "Dict creates a tokenized logging dictionary from the provided cmodule JSON file.",
+	ShortUsage:       "[-output output] [cmodule JSON]",
+	SetupFlags: func(fs *flag.FlagSet) {
+		fs.BoolVar(&dictOptions.Compact, "compact", false, "output compact JSON dictionary")
+		fs.StringVar(&dictOptions.Output, "output", "", "file to output the stripped source to, or stdout if empty")
+	},
+	Run: func(args []string) {
+		if len(args) == 0 {
+			cli.Fatal("Must provide a cmodule JSON file.\n")
 		}
 
-		if fs.NArg() != 1 {
-			info("Only accepts one cmodule JSON file.\n\n")
-			fs.Usage()
-			os.Exit(1)
+		if len(args) != 1 {
+			cli.Fatal("Only accepts one cmodule JSON file.\n")
 		}
 
-		f, err := os.Open(fs.Arg(0))
+		f, err := os.Open(args[0])
 		if err != nil {
-			fatalf("Error opening modules JSON file: %v\n", err)
+			cli.Fatalf("Error opening modules JSON file: %v\n", err)
 		}
 
 		var info ModulesInfo
 		if err := json.NewDecoder(f).Decode(&info); err != nil {
 			f.Close()
-			fatalf("Error decoding modules JSON: %v\n", err)
+			cli.Fatalf("Error decoding modules JSON: %v\n", err)
 		}
 		f.Close()
 
@@ -76,13 +62,13 @@ var dictCommand = Command{
 			var mf *os.File
 			mf, err = os.Open(module.Path)
 			if err != nil {
-				fatalf("Error opening module file: %v\n", err)
+				cli.Fatalf("Error opening module file: %v\n", err)
 			}
 
 			lines, err := ctlog.FindLines(mf)
 			if err != nil {
 				mf.Close()
-				fatalf("Error finding module lines: %v\n", err)
+				cli.Fatalf("Error finding module lines: %v\n", err)
 			}
 			mf.Close()
 
@@ -95,12 +81,12 @@ var dictCommand = Command{
 		}
 
 		var w io.Writer
-		if flagOutput == "" {
+		if dictOptions.Output == "" {
 			w = os.Stdout
 		} else {
-			f, err := os.OpenFile(flagOutput, os.O_CREATE|os.O_WRONLY, 0664)
+			f, err := os.OpenFile(dictOptions.Output, os.O_CREATE|os.O_WRONLY, 0664)
 			if err != nil {
-				fatalf("Error opening output file: %v\n", err)
+				cli.Fatalf("Error opening output file: %v\n", err)
 			}
 			defer f.Close()
 			w = f
@@ -108,15 +94,14 @@ var dictCommand = Command{
 
 		enc := json.NewEncoder(w)
 
-		if !flagCompact {
+		if !dictOptions.Compact {
 			enc.SetIndent("", "  ")
 		}
 
 		if err := enc.Encode(&tlogInfo); err != nil {
-			fatalf("Error encoding JSON: %v\n", err)
+			cli.Fatalf("Error encoding JSON: %v\n", err)
 		}
 	},
-	HelpFn: func() { info(dictHelp) },
 }
 
 type TlogInfo struct {
