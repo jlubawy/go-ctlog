@@ -67,9 +67,9 @@ func (prog *Program) Run() {
 		}
 	}
 
-	Fatalf(`ctlog: unknown command "%s"
-Run 'ctlog help' for usage.
-`, fs.Arg(1))
+	Fatalf(`%s: unknown command "%s"
+Run '%s help' for usage.
+`, prog.Name, fs.Arg(1), prog.Name)
 }
 
 type Command struct {
