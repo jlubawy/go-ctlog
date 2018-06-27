@@ -9,12 +9,10 @@ package cmodule
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"sort"
 
-	"github.com/jlubawy/go-ctext"
 	"github.com/jlubawy/go-ctext/cmacro"
 )
 
@@ -114,48 +112,25 @@ func walkDir(root string) (modules []Module, err error) {
 		}
 		defer f.Close()
 
-		var (
-			s    = ctext.NewScanner(f)
-			done bool
-		)
-		for !done {
-			tt := s.Next()
-			switch tt {
-			case ctext.ErrorToken:
-				err = s.Err()
-				if err != io.EOF {
-					return
-				}
-				err = nil
-				done = true
-
-			case ctext.TextToken:
-				var mfs []cmacro.MacroFunc
-				mfs, err = cmacro.FindMacroFuncs(s.TokenText(), s.Position, MacroFuncName)
-				if err != nil {
-					return
-				}
-
-				if len(mfs) == 0 {
-					continue // skip tokens with no module definition
-				}
-				if len(mfs) > 1 {
-					err = fmt.Errorf("more than one module definition found in %s", path)
-					return
-				}
-				mf := mfs[0]
-				if len(mf.Args) != 1 {
-					err = fmt.Errorf("expected a single argument in the module definition but got %d", len(mf.Args))
-					return
-				}
-
-				modules = append(modules, Module{
-					Name: mf.Args[0],
-					Path: path,
-				})
-
-				done = true
+		count := 0
+		err = cmacro.ScanInvocations(f, func(inv cmacro.Invocation) {
+			if len(inv.Args) != 1 {
+				err = fmt.Errorf("expected a single argument in the module definition but got %d", len(inv.Args))
+				return
 			}
+
+			modules = append(modules, Module{
+				Name: inv.Args[0],
+				Path: path,
+			})
+		}, MacroFuncName)
+		if err != nil {
+			return
+		}
+
+		if count > 1 {
+			err = fmt.Errorf("more than one module definition found in %s", path)
+			return
 		}
 
 		return

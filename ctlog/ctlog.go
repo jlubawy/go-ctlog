@@ -16,7 +16,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jlubawy/go-ctext"
 	"github.com/jlubawy/go-ctext/cmacro"
 )
 
@@ -98,45 +97,24 @@ type Line struct {
 func FindLines(r io.Reader) (lines []Line, err error) {
 	lines = make([]Line, 0)
 
-	s := ctext.NewScanner(r)
-	for {
-		tt := s.Next()
-		switch tt {
-		case ctext.ErrorToken:
-			err = s.Err()
-			if err == io.EOF {
-				err = nil
-			}
+	err = cmacro.ScanInvocations(r, func(inv cmacro.Invocation) {
+		rs := inv.Args[0]
+		if rs[0] != '"' {
+			err = fmt.Errorf("format string missing opening quote")
 			return
-
-		case ctext.TextToken:
-			var mfs []cmacro.MacroFunc
-			mfs, err = cmacro.FindMacroFuncs(s.TokenText(), s.Position, MacroFuncNames...)
-			if err != nil {
-				return
-			}
-
-			if len(mfs) == 0 {
-				continue // skip tokens with no tokenized logging invocation
-			}
-
-			for _, mf := range mfs {
-				rs := mf.Args[0]
-				if rs[0] != '"' {
-					err = fmt.Errorf("format string missing opening quote")
-					return
-				}
-				if rs[len(rs)-1] != '"' {
-					err = fmt.Errorf("format string missing closing quote")
-					return
-				}
-
-				lines = append(lines, Line{
-					Number:       mf.LineEnd,
-					FormatString: rs[1 : len(rs)-1],
-				})
-			}
 		}
+		if rs[len(rs)-1] != '"' {
+			err = fmt.Errorf("format string missing closing quote")
+			return
+		}
+
+		lines = append(lines, Line{
+			Number:       inv.End,
+			FormatString: rs[1 : len(rs)-1],
+		})
+	}, MacroFuncNames...)
+	if err != nil {
+		return
 	}
 
 	return
