@@ -7,7 +7,8 @@ package main
 import "github.com/jlubawy/go-cli"
 
 var program = cli.Program{
-	Name: "cmodule",
+	Name:        "cmodule",
+	Description: "Cmodule is a program for managing modularized C projects.",
 	Commands: []cli.Command{
 		headerCommand,
 		jsonCommand,

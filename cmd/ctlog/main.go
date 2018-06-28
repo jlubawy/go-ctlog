@@ -7,7 +7,8 @@ package main
 import "github.com/jlubawy/go-cli"
 
 var program = cli.Program{
-	Name: "ctlog",
+	Name:        "ctlog",
+	Description: "Ctlog is a program for managing tokenized logging projects.",
 	Commands: []cli.Command{
 		dictCommand,
 		logCommand,
